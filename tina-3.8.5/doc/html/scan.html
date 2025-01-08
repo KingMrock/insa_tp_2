@@ -1,0 +1,247 @@
+<HTML><HEAD>
+<TITLE>Manual Page - scan(n)</TITLE>
+<BODY bgcolor=#F0F0F0 text=#000000 link=#0000ff vlink=#C000C0 alink=#ff0000><A NAME=top></A>
+<!-- .TH scan n "Version 3.8.5" "Tina Tools" -->
+<CENTER>
+<H1><HR><I>Manual Reference Pages &nbsp;-&nbsp;</I><NOBR>scan (n)</NOBR><HR></H1>
+</CENTER>
+<P>
+<!-- .SH NAME -->
+<A name=0>
+
+     <H3>NAME</H3>
+
+</A>
+<BLOCKQUOTE>
+scan  - filters states in a ktz description obeying some reachability property or deadlocked.
+<P>
+Part of Tina Toolbox for analysis of Petri nets and Time Petri nets.
+<P>
+<!-- .SH SYNOPSIS -->
+</BLOCKQUOTE>
+<A name=contents></A><H3>CONTENTS</H3></A>
+<BLOCKQUOTE>
+<A HREF=#1>Synopsis</A><BR>
+<A HREF=#2>Description</A><BR>
+<A HREF=#3>Options</A><BR>
+<A HREF=#4>Examples</A><BR>
+<A HREF=#5>See Also</A><BR>
+<A HREF=#6>Authors</A><BR>
+</BLOCKQUOTE>
+<A name=7>
+
+     <H3>SYNOPSIS</H3>
+
+</A>
+<BLOCKQUOTE>
+<P>
+<!-- .B scan -->
+<B>scan</B> [-<I>h</I>elp]
+<P>
+<!-- .B scan -->
+<B>scan</B> ktzfile [(-f|-r|-n)  (form|file)] [(-d|-dead)]
+<BR>
+     [-c | -b | -s | -m] [-limit n] [-script]
+<BR>
+     [outfile] [errorfile]
+<P>
+<!-- .SH DESCRIPTION -->
+</BLOCKQUOTE>
+<A name=2>
+
+     <H3>DESCRIPTION</H3>
+
+</A>
+<BLOCKQUOTE>
+<P>
+Given a kripke transition system in a ktz file, counts the states in the file obeying the formula passed by -f, -r or -n (if any)
+or the states without successor(s) if -dead is passed instead. Prints results in the selected output format.
+<P>
+Note: For the same formulas, and all output formats, there is an invocation of the muse tool returning the same result,
+but scan typically uses less space as it does not have to record the full state graph and can often instead proceed on
+the fly while reading the ktz file. scan is much faster than selt or muse for checking reachability formulas, especially if the ktz file has profile rsf, rsd or ra.
+<P>
+<P>
+<!-- .SH OPTIONS -->
+</BLOCKQUOTE>
+<A name=3>
+
+     <H3>OPTIONS</H3>
+
+</A>
+<BLOCKQUOTE>
+<P>
+<!-- .TP -->
+<TABLE cellpadding=3>
+<TR valign=top><TD width=6% nowrap>
+-<I>h</I>elp
+</TD><TD valign=bottom>
+Recalls options.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+<!-- .B Formulas: -->
+<B>Formulas:</B> </TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+(-f|-r[eachable]|-n[ever]) form
+</TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+Counts states obeying property form; none if form=F, all if form=T.
+Formula form is any modality-free formula accepted by the muse or selt model
+checkers (check man muse/selt for details).
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+(-f|-r[eachable]|-n[ever]) file
+</TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+Same for the formula form read in file.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+(-d|-dead)
+</TD><TD valign=bottom>
+Counts states without successor(s).
+<P>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+<!-- .B Output format flags: -->
+<B>Output format flags:</B> </TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-c
+</TD><TD valign=bottom>
+Prints the number of states counted. This is the default output format.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-b
+</TD><TD valign=bottom>
+If the formula is passed by -f or -r then prints TRUE if some state has been counted, or FALSE otherwise;
+the states counted are then witnesses for the formula. This amounts to check the CTL formula EF f.
+<P>
+If the formula is passed by -n then prints FALSE if some state has been counted, or TRUE otherwise;
+the states counted are then counter examples for the formula.  This amounts to check the CTL formula AG f.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-s
+</TD><TD valign=bottom>
+Prints the set of states counted as their indices in the ktz file, up to the limit set by -limit.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-m
+</TD><TD valign=bottom>
+Prints the recorded states in clear, as they would be printed by program ktzio, up to the limit set by -limit.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-limit n
+</TD><TD valign=bottom>
+Limits to n the number of indices of states printed by options -s and -m.
+No limit is set if n=0 (default).
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD width=6% nowrap>
+-script
+</TD><TD valign=bottom>
+With boolean output, formulas are printed before their truth values.
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+<!-- .B Input source: -->
+<B>Input source:</B> </TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+ktzfile (or -)
+</TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+A ktz file (read on stdin if - and your OS allows reading binary on stdin)
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+<!-- .B Output destination: -->
+<B>Output destination:</B> </TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+outfile
+</TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+Where the results are written (default stdout).
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+<!-- .B Errors destination: -->
+<B>Errors destination:</B> </TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+<P>
+<!-- .TP -->
+</TD></TR>
+<TR valign=top><TD colspan=2>
+errorfile
+</TD></TR><TR valign=top><TD width=6%>&nbsp;</TD><TD>
+Where error messages are written (default stderr).
+<P>
+<P>
+<!-- .SH EXAMPLES -->
+</TD></TR>
+<TR></TR></TABLE></BLOCKQUOTE>
+<A name=4>
+
+     <H3>EXAMPLES</H3>
+
+</A>
+<BLOCKQUOTE>
+<P>
+<!-- .nf -->
+<PRE>
+scan -dead ifip.ktz
+scan -r "p10 <BLINK>\/</BLINK> p12" abp.ktz -m
+scan -n "p10 <BLINK>\/</BLINK> p12" abp.ktz -m
+<!-- .fi -->
+</PRE>
+<P>
+<!-- .SH SEE ALSO -->
+</BLOCKQUOTE>
+<A name=5>
+
+     <H3>SEE ALSO</H3>
+
+</A>
+<BLOCKQUOTE>
+<P>
+nd(n), tina(n), plan(n), struct(n), ktzio(n), ndrio(n), tedd(n), selt(n), sift(n), pathto(n), muse(n), play(n), walk(n), reduce(n), formats(n)
+<P>
+<!-- .SH AUTHORS -->
+</BLOCKQUOTE>
+<A name=6>
+
+     <H3>AUTHORS</H3>
+
+</A>
+<BLOCKQUOTE>
+Bernard Berthomieu,
+LAAS/CNRS, 2000-2024, <A HREF="mailto:Bernard.Berthomieu@laas.fr.">Bernard.Berthomieu@laas.fr.</A>
+<P>
+</BLOCKQUOTE>
+<P><HR>
+<TABLE width=100%><TR> <TD width=33%><I>Tina Tools</I></TD> <TD width=33% align=center>scan (n)</TD> <TD align=right width=33%><I>Version 3.8.5</I></TD> </TR></TABLE><FONT SIZE=-1>Generated by <A HREF="http://www.squarebox.co.uk/download/manServer.shtml">manServer 1.07</A> from src/scan.n using man macros.</FONT>
+</BODY></HTML>

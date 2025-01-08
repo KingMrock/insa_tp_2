@@ -171,7 +171,11 @@ class PetriNet:
         str
             SMT-LIB format.
         """
-        raise NotImplementedError
+        smt_input = ""
+        for pl, marking in self.initial_marking.items():
+            var = pl if k is None else "{}@{}".format(pl, k)
+            smt_input += "(assert (= {} {}))\n".format(var, marking)
+        return smt_input
     ######################
 
     ######################
@@ -190,7 +194,24 @@ class PetriNet:
         str
             SMT-LIB format.
         """
-        raise NotImplementedError
+        smt_input = "(assert (or\n"
+        for t in self.transitions:
+            smt_input += "  (and\n"
+            # Enabling condition
+            for p in self.pre[t]:
+                smt_input += f"    (>= {p}@{k} {self.pre[t][p]})\n"
+            # Marking update
+            for p in self.places:
+                pre_val = self.pre[t].get(p, 0)
+                post_val = self.post[t].get(p, 0)
+                diff = post_val - pre_val
+                if diff == 0:
+                    smt_input += f"    (= {p}@{k_prime} {p}@{k})\n"
+                else:
+                    smt_input += f"    (= {p}@{k_prime} (+ {p}@{k} {diff}))\n"
+            smt_input += "  )\n"
+        smt_input += "))\n"
+        return smt_input
     ######################
 
     def parse_net(self, filename: str) -> None:

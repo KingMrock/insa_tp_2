@@ -1,0 +1,2 @@
+(define-fun m_underline ((x1 Bool) (x2 Bool) ... (xn Bool)) Bool
+  (and (= x1 m(p1)) (= x2 m(p2)) ... (= xn m(pn))))

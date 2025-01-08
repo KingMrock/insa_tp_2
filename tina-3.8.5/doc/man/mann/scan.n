@@ -1,0 +1,121 @@
+.TH scan n "Version 3.8.5" "Tina Tools"
+
+.SH NAME
+scan  \- filters states in a ktz description obeying some reachability property or deadlocked.
+
+Part of Tina Toolbox for analysis of Petri nets and Time Petri nets.
+
+.SH SYNOPSIS
+
+.B scan
+[\-\f2h\f1elp] 
+
+.B scan
+ktzfile [(\-f|\-r|\-n)  (form|file)] [(\-d|\-dead)]
+     [\-c | \-b | \-s | \-m] [\-limit n] [\-script]
+     [outfile] [errorfile]
+
+.SH DESCRIPTION
+
+Given a kripke transition system in a ktz file, counts the states in the file obeying the formula passed by -f, -r or -n (if any)
+or the states without successor(s) if -dead is passed instead. Prints results in the selected output format.
+
+Note: For the same formulas, and all output formats, there is an invocation of the muse tool returning the same result,
+but scan typically uses less space as it does not have to record the full state graph and can often instead proceed on
+the fly while reading the ktz file. scan is much faster than selt or muse for checking reachability formulas, especially if the ktz file has profile rsf, rsd or ra.
+
+
+.SH OPTIONS
+
+.TP
+\-\f2h\f1elp
+Recalls options.
+
+.TP
+.B Formulas:
+
+.TP
+(\-f|\-r[eachable]|\-n[ever]) form
+Counts states obeying property form; none if form=F, all if form=T.
+Formula form is any modality-free formula accepted by the muse or selt model
+checkers (check man muse/selt for details).
+
+.TP
+(\-f|\-r[eachable]|\-n[ever]) file
+Same for the formula form read in file.
+
+.TP
+(\-d|\-dead)
+Counts states without successor(s).
+
+
+.TP
+.B Output format flags:
+
+.TP
+\-c
+Prints the number of states counted. This is the default output format.
+
+.TP
+\-b
+If the formula is passed by -f or -r then prints TRUE if some state has been counted, or FALSE otherwise;
+the states counted are then witnesses for the formula. This amounts to check the CTL formula EF f.
+
+If the formula is passed by -n then prints FALSE if some state has been counted, or TRUE otherwise;
+the states counted are then counter examples for the formula.  This amounts to check the CTL formula AG f.
+
+.TP
+\-s
+Prints the set of states counted as their indices in the ktz file, up to the limit set by -limit.
+
+.TP
+\-m
+Prints the recorded states in clear, as they would be printed by program ktzio, up to the limit set by -limit.
+
+.TP
+\-limit n
+Limits to n the number of indices of states printed by options -s and -m.
+No limit is set if n=0 (default).
+
+.TP
+\-script
+With boolean output, formulas are printed before their truth values.
+
+.TP
+.B Input source:
+
+.TP
+ktzfile (or -)
+A ktz file (read on stdin if - and your OS allows reading binary on stdin)
+
+.TP
+.B Output destination:
+
+.TP
+outfile
+Where the results are written (default stdout).
+
+.TP
+.B Errors destination:
+
+.TP
+errorfile
+Where error messages are written (default stderr).
+
+
+.SH EXAMPLES
+
+.nf
+scan -dead ifip.ktz
+scan -r "p10 \/ p12" abp.ktz -m
+scan -n "p10 \/ p12" abp.ktz -m
+.fi
+
+.SH SEE ALSO
+
+nd(n), tina(n), plan(n), struct(n), ktzio(n), ndrio(n), tedd(n), selt(n), sift(n), pathto(n), muse(n), play(n), walk(n), reduce(n), formats(n)
+
+.SH AUTHORS
+Bernard Berthomieu,
+LAAS/CNRS, 2000-2024, Bernard.Berthomieu@laas.fr.
+

@@ -100,5 +100,33 @@ class Induction(AbstractChecker):
         bool, optional
             `True` if the formula is inductive, `None` otherwise.
         """
-        raise NotImplementedError
+        self.solver.write(self.ptnet.smtlib_declare_places(0))
+        self.solver.write(self.ptnet.smtlib_set_initial_marking(0))
+
+        # Check Constraint (1): m0 ∧ F(m0) is SAT?
+        self.solver.push()
+        self.solver.write(self.formula.smtlib(0, assertion=True))
+        if self.solver.check_sat():
+            self.solver.pop()
+            return True
+        self.solver.pop()
+
+
+
+        # Check Constraint (2): ¬F(m0) ∧ T(m0,m1) ∧ F(m1) is UNSAT?
+        self.solver.push()
+        self.solver.write(self.ptnet.smtlib_declare_places(1))
+        self.solver.write(self.ptnet.smtlib_transition_relation(0, 1))
+        negF_0 = self.formula.smtlib(0, assertion=False, negation=True)
+        F_1 = self.formula.smtlib(1, assertion=False)
+        self.solver.write(f"(assert (and {negF_0} {F_1}))")
+        if not self.solver.check_sat():
+            self.solver.pop()
+            return False
+        self.solver.pop()
+        
+
+        return None
+
+
     ######################
