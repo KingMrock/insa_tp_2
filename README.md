@@ -373,3 +373,4 @@ Note that the `!=` operator in SMT-LIB is `distinct`.
 ---
 
 [^1] In the subject, we will use the two notations $A \rightarrow B$ and $B^A$ interchangeably, for the type of mappings from $A$ to $B$.
+# insa_tp_2
