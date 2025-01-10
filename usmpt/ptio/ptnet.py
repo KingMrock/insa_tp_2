@@ -154,6 +154,16 @@ class PetriNet:
             smt_input += "(assert (>= {} 0))\n".format(var)
 
         return smt_input
+    
+    def smtlib_declare_places_sat(self, k: Optional[int] = None) -> str:
+        """
+        Declare Boolean variables for places (safe net).
+        """
+        smt_input = ""
+        for pl in self.places:
+            var = pl if k is None else f"{pl}@{k}"
+            smt_input += f"(declare-const {var} Bool)\n"
+        return smt_input
 
     ######################
     # TODO: Sect. 2.3.1. #
@@ -177,6 +187,22 @@ class PetriNet:
             smt_input += "(assert (= {} {}))\n".format(var, marking)
         return smt_input
     ######################
+
+    def smtlib_set_initial_marking_sat(self, k: Optional[int] = None) -> str:
+        """
+        Set initial marking (true = 1 token, false = 0 token) for a safe net.
+        """
+        smt_input = ""
+        for pl, marking in self.initial_marking.items():
+            var = pl if k is None else f"{pl}@{k}"
+            if marking > 1:
+                # Not valid for a safe net; you could raise an error or handle differently.
+                smt_input += f"(assert false) ; // Invalid marking > 1 in a safe net\n"
+            elif marking == 1:
+                smt_input += f"(assert {var})\n"
+            else:
+                smt_input += f"(assert (not {var}))\n"
+        return smt_input
 
     ######################
     # TODO: Sect. 2.3.1. #
@@ -214,6 +240,40 @@ class PetriNet:
         return smt_input
     ######################
 
+    def smtlib_transition_relation_sat(self, k: int, k_prime: int) -> str:
+        """
+        Transition relation for a safe net:
+        each transition can flip the relevant place bits.
+        """
+        smt_input = "(assert (or\n"
+        for t in self.transitions:
+            # Building an AND block for firing t at step k => new marking at step k+1
+            smt_input += "  (and\n"
+            # Pre-condition: all input places must be true
+            for p_in, w in self.pre[t].items():
+                # For a safe net, w > 1 not allowed, but just in case check w
+                if w >= 1:
+                    smt_input += f"    {p_in}@{k}\n"
+            # Post-condition: all output places become true
+            # Input places become false (since only 0/1 token)
+            for p in self.pre[t]:
+                smt_input += f"    (not {p}@{k_prime})\n"
+            for p_out, w in self.post[t].items():
+                if w >= 1:
+                    smt_input += f"    {p_out}@{k_prime}\n"
+            # Other places unchanged
+            for p in self.places - set(self.pre[t]) - set(self.post[t]):
+                smt_input += f"    (= {p}@{k} {p}@{k_prime})\n"
+            smt_input += "  )\n"
+        # Also allow 'no transition fires' to keep marking unchanged
+        smt_input += "  (and\n"
+        for p in self.places:
+            smt_input += f"    (= {p}@{k} {p}@{k_prime})\n"
+        smt_input += "  )\n"
+        smt_input += "))\n"
+        return smt_input
+
+
     def parse_net(self, filename: str) -> None:
         """ Petri net parser.
 
@@ -250,6 +310,45 @@ class PetriNet:
             fp.close()
         except FileNotFoundError as e:
             exit("Error: Input file not found")
+
+    def smtlib_declare_transition_firing_vector(self) -> str:
+        """ Declare variables for the transition firing vector (z).
+
+        Returns
+        -------
+        str
+            SMT-LIB format.
+        """
+        smt_input = ""
+        for tr in self.transitions:
+            smt_input += f"(declare-const {tr}_f Int)\n"
+            smt_input += f"(assert (>= {tr}_f 0))\n"  # Non-negative firing counts
+        return smt_input
+    
+    def smtlib_state_equation(self) -> str:
+        """Generate the state equation I·z + m0 = m.
+
+        Returns
+        -------
+        str
+            SMT-LIB format.
+        """
+        smt_input = "(assert (and\n"
+        for place in self.places:
+            equation = f"(= {place} (+ {self.initial_marking[place]}"
+            for transition in self.transitions:
+                post_val = self.post[transition].get(place, 0)
+                pre_val = self.pre[transition].get(place, 0)
+                coeff = post_val - pre_val
+                if coeff != 0:
+                    equation += f" (* {coeff} {transition}_f)"
+            equation += "))\n"
+            smt_input += equation
+        smt_input += "))\n"
+        return smt_input
+
+
+
 
     def parse_transition(self, content: list[str]) -> None:
         """ Transition parser.

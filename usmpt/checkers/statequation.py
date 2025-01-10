@@ -111,12 +111,42 @@ class StateEquation(AbstractChecker):
     # TODO: Sect. 2.3.4. #
     ######################
     def prove_helper(self) -> Optional[bool]:
-        """ Prover to complete.
+        """
+        Determine if the formula is not reachable or potentially reachable.
 
         Returns
         -------
         bool, optional
             `False` if F is proved as not reachable, `None` otherwise.
         """
-        raise NotImplementedError
-    ######################
+        solver = self.solver
+
+        # Declare variables for places and transitions
+        solver.write(self.ptnet.smtlib_declare_places())
+        solver.write(self.ptnet.smtlib_declare_transition_firing_vector())
+        solver.write(self.ptnet.smtlib_set_initial_marking())
+
+        # Generate the state equation
+        solver.write(self.ptnet.smtlib_state_equation())
+
+        # Check if F is satisfiable under the state equation constraints
+        solver.push()
+        solver.write(self.formula.smtlib(assertion=True))
+        is_f_sat = solver.check_sat()
+        solver.pop()
+
+        if is_f_sat is True:
+            # If F is satisfiable, then it is potentially reachable
+            return None
+
+        if is_f_sat:
+            # We found a solution in the over-approx => cannot conclude not reachable => unknown
+            return None
+        else:
+            # No solution under the incidence constraints. If it's an equality => definitely not reachable
+            # Otherwise treat it as unknown, because the method is incomplete
+            formula_text = str(self.formula)
+            if '=' in formula_text:
+                return False
+            else:
+                return None

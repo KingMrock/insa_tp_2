@@ -122,5 +122,47 @@ class KInduction(AbstractChecker):
         int
             Iteration number of the unsat query.
         """
-        raise NotImplementedError
-    ######################
+        iteration = 0
+
+        # Declare variables for the initial marking (iteration 0)
+        self.solver.write(self.ptnet.smtlib_declare_places(0))
+        self.solver.write(self.ptnet.smtlib_set_initial_marking(0))
+
+        # Construct the base formula ψ_0 (neg(F(x0)) ∧ T(x0, x1))
+        self.solver.push()
+        self.solver.write(self.formula.smtlib(0, assertion=True, negation=True))  # Assert ¬F(x0)
+        self.solver.write(self.ptnet.smtlib_declare_places(1))
+        self.solver.write(self.ptnet.smtlib_transition_relation(0, 1))  # Assert T(x0, x1)
+
+        # Assert F(x1) and check satisfiability
+        self.solver.push()
+        self.solver.write(self.formula.smtlib(1, assertion=True))  # Assert F(x1)
+        if not self.solver.check_sat():
+            self.solver.pop()
+            self.solver.pop()
+            return iteration  # UNSAT for ψ_0 ∧ F(x1)
+        self.solver.pop()
+
+        # Start K-Induction loop
+        while True:
+            iteration += 1
+
+            # Declare new variables for next marking (iteration k + 1)
+            self.solver.write(self.ptnet.smtlib_declare_places(iteration + 1))
+
+            # Extend ψ_i with neg(F(x_i)) ∧ T(x_i, x_i+1)
+            self.solver.write(self.formula.smtlib(iteration, assertion=True, negation=True))  # Assert ¬F(x_k)
+            self.solver.write(self.ptnet.smtlib_transition_relation(iteration, iteration + 1))  # Assert T(x_k, x_k+1)
+
+            # Check satisfiability of ψ_i ∧ F(x_{i+1})
+            self.solver.push()
+            self.solver.write(self.formula.smtlib(iteration + 1, assertion=True))  # Assert F(x_{k+1})
+            if not self.solver.check_sat():
+                self.solver.pop()
+                self.solver.pop()
+                return iteration  # UNSAT for ψ_i ∧ F(x_{k+1})
+            self.solver.pop()
+
+            
+
+    

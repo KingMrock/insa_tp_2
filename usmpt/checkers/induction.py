@@ -98,35 +98,42 @@ class Induction(AbstractChecker):
         Returns
         -------
         bool, optional
-            `True` if the formula is inductive, `None` otherwise.
+            `True` if the formula is reachable, `False` if the formula is not reachable,
+            or `None` if the status is unknown.
         """
+        # Declare the variables for the initial marking (iteration 0)
         self.solver.write(self.ptnet.smtlib_declare_places(0))
         self.solver.write(self.ptnet.smtlib_set_initial_marking(0))
 
-        # Check Constraint (1): m0 ∧ F(m0) is SAT?
+        # Check Constraint (1): m0(x) ∧ F(x)
         self.solver.push()
-        self.solver.write(self.formula.smtlib(0, assertion=True))
+        self.solver.write(self.formula.smtlib(0, assertion=True))  # Assert F(x) at iteration 0
         if self.solver.check_sat():
             self.solver.pop()
-            return True
+            return True  # REACHABLE
         self.solver.pop()
 
-
-
-        # Check Constraint (2): ¬F(m0) ∧ T(m0,m1) ∧ F(m1) is UNSAT?
-        self.solver.push()
+        # Declare variables for the next marking (iteration 1)
         self.solver.write(self.ptnet.smtlib_declare_places(1))
-        self.solver.write(self.ptnet.smtlib_transition_relation(0, 1))
-        negF_0 = self.formula.smtlib(0, assertion=False, negation=True)
-        F_1 = self.formula.smtlib(1, assertion=False)
-        self.solver.write(f"(assert (and {negF_0} {F_1}))")
-        if not self.solver.check_sat():
-            self.solver.pop()
-            return False
-        self.solver.pop()
-        
 
+        # Check Constraint (2): ¬F(x) ∧ T(x, x') ∧ F(x')
+        self.solver.push()
+
+        # Assert ¬F(x) at iteration 0
+        self.solver.write(self.formula.smtlib(0, assertion=True, negation=True))
+
+        # Assert the transition relation T(x, x')
+        self.solver.write(self.ptnet.smtlib_transition_relation(0, 1))
+
+        # Check satisfiability for ¬F(x) ∧ T(x, x')
+        if self.solver.check_sat():
+            # Assert F(x') at iteration 1
+            self.solver.write(self.formula.smtlib(1, assertion=True))
+            if not self.solver.check_sat():
+                self.solver.pop()
+                return False  # NOT REACHABLE
+        self.solver.pop()
+
+        # If neither condition holds, return UNKNOWN
         return None
 
-
-    ######################
