@@ -374,3 +374,12 @@ Note that the `!=` operator in SMT-LIB is `distinct`.
 
 [^1] In the subject, we will use the two notations $A \rightarrow B$ and $B^A$ interchangeably, for the type of mappings from $A$ to $B$.
 # insa_tp_2
+
+
+Every question of the TP has been answered.
+For the question 2.3.4, the net and the formulas are in the state equation folder
+For question 2.3.5, changes must be made in whatever method want to be used to call the smtlib_declare_places_sat, smtlib_set_initial_marking_sat, and smtlib_transition_relation_sat functions.
+Or alternatively modify the name of those to be the default ones and then change the iterations of formulas.stmlib to formulas.stmlib_sat in the method that will be used.
+From our testing every method used on the safe_net did work as intended.
+
+```
